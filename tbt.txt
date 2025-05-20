@@ -1,0 +1,33 @@
+sudo apt-get install python3-tk
+sudo apt install python3-pip
+sudo apt install postgresql postgresql-contrib
+sudo -i -u postgres
+psql
+create user _pos_user with password '123';
+alter user _pos_user createdb;
+create database pos_db owner _pos_user;
+grant all privileges on database pos_db to _pos_user;
+psql -U _pos_user -d pos_db -h localhost -W;
+
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    photo BYTEA,
+    stock INTEGER NOT NULL,
+    price NUMERIC(10,2) NOT NULL,
+    barcode TEXT
+);
+
+CREATE TABLE sales (
+    id SERIAL PRIMARY KEY,
+    sale_timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    total_amount DECIMAL(10, 2) NOT NULL
+);
+
+CREATE TABLE sale_items (
+    id SERIAL PRIMARY KEY,
+    sale_id INT NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
+    product_id INT NOT NULL REFERENCES products(id) ON DELETE RESTRICT, -- Prevent deleting product if it's in a sale
+    quantity INT NOT NULL,
+    price_at_sale DECIMAL(10, 2) NOT NULL -- Price at the time of sale, in case product price changes later
+);
